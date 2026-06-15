@@ -6,6 +6,17 @@ import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import UserDashboard from './pages/UserDashboard/UserDashboard';
 import { useState, useEffect } from 'react';
 
+function isTokenExpired(token) {
+    if (!token) return true;
+    try {
+      const payload = token.split('.')[1];
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized.padEnd(normalized.length + (4 - normalized.length % 4) % 4, '=');
+      const decode = JSON.parse(atob(padded));
+      return decode.exp ? decode.exp * 1000 < Date.now() : false;
+    } catch { return true; }
+}
+
 function getRoleFromToken(token) {
     if (!token) return null;
     try {
@@ -41,11 +52,12 @@ function App() {
     const token = localStorage.getItem('token');
     return getRoleFromToken(token);
   });
-  const [initializing, setInitializing] = useState(!localStorage.getItem('token'));
+  const [initializing, setInitializing] = useState(() => { const t = localStorage.getItem('token'); return !t || isTokenExpired(t); });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    if (!token || isTokenExpired(token)) {
+      if (token) localStorage.removeItem('token');
       loginAs(DEMO_USER, setRole).finally(() => setInitializing(false));
     }
   }, []);
@@ -117,3 +129,5 @@ function App() {
 }
 
 export default App;
+
+
