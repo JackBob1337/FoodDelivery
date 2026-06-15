@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import UserDashboard from './pages/UserDashboard/UserDashboard';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function getRoleFromToken(token) {
     if (!token) return null;
@@ -41,14 +41,15 @@ function App() {
     const token = localStorage.getItem('token');
     return getRoleFromToken(token);
   });
+  const [initializing, setInitializing] = useState(!localStorage.getItem('token'));
 
-  useState(() => {
+  useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      loginAs(DEMO_USER, setRole);
+      loginAs(DEMO_USER, setRole).finally(() => setInitializing(false));
     }
-  });
-  
+  }, []);
+
   const handleLoginSuccess = (token) => {
     setRole(getRoleFromToken(token));
   };
@@ -63,6 +64,8 @@ function App() {
 
   const isAdmin = role === 'admin' || role === 'super_admin';
 
+  if (initializing) return null;
+
   return (
     <div>
       {isAdmin
@@ -72,8 +75,8 @@ function App() {
 
       <div style={{
         position: 'fixed',
-        bottom: '20px',
-        left: '20px',
+        top: '20px',
+        right: '20px',
         display: 'flex',
         gap: '8px',
         zIndex: 9999
