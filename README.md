@@ -1,4 +1,4 @@
-# 🍕 Food Delivery App
+#  Food Delivery App
 
 Full-stack food delivery web application with user and admin interfaces.
 
